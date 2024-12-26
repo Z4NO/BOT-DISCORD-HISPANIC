@@ -13,6 +13,7 @@ from comandos.listaserver import ListarServerEnDb
 from comandos.añadirOwner import AñadirOwner
 from comandos.listaraccionesmoderador import ListarAccionesModerador
 from comandos.mutear import MutearMiembro, DesmutearMiembro
+from comandos.warn  import WarnMiembro, DesWarnMiembro
 import sqlite3
 
 load_dotenv()
@@ -36,12 +37,19 @@ on_reaction_remove(reaction, user)
 # Conectar a la base de datos SQLite existente
 
 try:
-    conn = sqlite3.connect('data.sqlite')
+    conn = sqlite3.connect('data2.sqlite')
     cursor = conn.cursor()
     print("Conectado a la base de datos SQLite")
 except Exception as e:
     print(e)
 
+server = 0
+
+server_elegir = int(input("Introduce el servidor en el que quieres trabajar\n1 -> Para HISPANIC\n2 -> Para pruebas bot : "))
+if server_elegir == 1:
+    server = 750433534581276692
+elif server_elegir == 2:
+    server = 1006662013071675502
 
 
 
@@ -51,7 +59,7 @@ class Client(commands.Bot):
         print('Logueado como: ', self.user)
 
         try:
-            guild = discord.Object(id=750433534581276692)
+            guild = discord.Object(id=server)
             synced = await self.tree.sync(guild=guild)
             print(f'Synced {synced} commands')
         except Exception as e:
@@ -117,7 +125,7 @@ def obtener_servidores():
 
 
 
-GUILD_ID = discord.Object(id=750433534581276692)
+GUILD_ID = discord.Object(id=server)
 #750433534581276692 HISPANIC SERVER
 #1006662013071675502 SERVIDOR DE PRUEBA
 
@@ -168,6 +176,14 @@ async def mutear(interaction: discord.Interaction, member: discord.Member, reaso
 @client.tree.command(name='desmutear', description='Desmutea a un usuario', guild=GUILD_ID)
 async def desmutear(interaction: discord.Interaction, member: discord.Member, reason: str):
     await DesmutearMiembro(interaction, cursor, member, reason, conn)
+
+@client.tree.command(name='warn', description='Avisa a un usuario', guild=GUILD_ID)
+async def warn(interaction: discord.Interaction, member: discord.Member, reason: str):
+    await WarnMiembro(interaction, cursor, member, reason, conn)
+
+@client.tree.command(name='deswarn', description='Desavisa a un usuario', guild=GUILD_ID)
+async def deswarn(interaction: discord.Interaction, member: discord.Member, reason: str):
+    await DesWarnMiembro(interaction, cursor, member, reason, conn)
 
 
     

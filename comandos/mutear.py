@@ -46,9 +46,9 @@ async def MutearMiembro(interaction: discord.Interaction, cursor: sqlite3.Cursor
             await interaction.response.send_message(embed=embed)
         
 
-        # Registrar en la base de datos
-        cursor.execute("INSERT INTO moderatoractions (idModerador, actionType, afectedMember, idAfected, date, endDateAction, reason, Owners_idOwners) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                   (interaction.user.id, 'mute', member.name, member.id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), None, reason, row[0]))
+         # Registrar en la base de datos
+        cursor.execute("INSERT INTO moderatoractions (idModerador, actionType, afectedMember, idAfected, date, endDateAction, reason, Owners_idOwners, idSERVER) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                   (interaction.user.id, 'mute', member.name, member.id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), None, reason, row[0], interaction.guild.id))
         conn.commit()
 
     except Exception as e:
@@ -80,8 +80,8 @@ async def DesmutearMiembro(interaction: discord.Interaction, cursor: sqlite3.Cur
         
 
         # Registrar en la base de datos
-        cursor.execute("INSERT INTO moderatoractions (idModerador, actionType, afectedMember, idAfected, date, endDateAction, reason, Owners_idOwners) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                   (interaction.user.id, 'unmute', member.name, member.id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), None, reason, row[0]))
+        cursor.execute("INSERT INTO moderatoractions (idModerador, actionType, afectedMember, idAfected, date, endDateAction, reason, Owners_idOwners, idSERVER) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                   (interaction.user.id, 'unmute', member.name, member.id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), None, reason, row[0], interaction.guild.id))
         conn.commit()
 
     except Exception as e:

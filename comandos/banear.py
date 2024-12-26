@@ -35,7 +35,7 @@ async def banear_command(interaction: discord.Interaction, member: discord.Membe
 
         # Añadimos el baneo a la base de datos
         current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cursor.execute("INSERT INTO moderatoractions (idModerador, actionType, afectedMember, idAfected, date, endDateAction, reason, Owners_idOwners) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (interaction.user.id, "ban", member.name, member.id, current_date, fechafinal_dt.strftime("%Y-%m-%d %H:%M:%S"), reason, interaction.user.id))
+        cursor.execute("INSERT INTO moderatoractions (idModerador, actionType, afectedMember, idAfected, date, endDateAction, reason, Owners_idOwners, idSERVER) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (interaction.user.id, "ban", member.name, member.id, current_date, fechafinal_dt.strftime("%Y-%m-%d %H:%M:%S"), reason, interaction.user.id, interaction.guild.id))
         conn.commit()
 
         #MANDAMOS un embed al usuario baneado para informarle de su baneo
@@ -72,8 +72,8 @@ async def desBanear_command(interaction: discord.Interaction, user: discord.User
 
             # Log unban action to database
             current_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            cursor.execute("INSERT INTO moderatoractions (idModerador, actionType, afectedMember, idAfected, date, endDateAction, reason, Owners_idOwners) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
-                         (interaction.user.id, "Desbaneo", user.name, user.id, current_date, None, reason, interaction.user.id))
+            cursor.execute("INSERT INTO moderatoractions (idModerador, actionType, afectedMember, idAfected, date, endDateAction, reason, Owners_idOwners, idSERVER) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                         (interaction.user.id, "Desbaneo", user.name, user.id, current_date, None, reason, interaction.user.id, interaction.guild.id))
             conn.commit()
 
             try:
