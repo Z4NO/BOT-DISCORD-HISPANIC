@@ -5,10 +5,13 @@ Este es un bot de Discord desarrollado en Python que incluye varias funcionalida
 ## Características
 
 - **Banear Usuarios:** Permite a los owners de servidores banear usuarios con una razón y una fecha de finalización del baneo.
+- **Desbanear Usuarios:** Permite a los owners de servidores desbanear usuarios.
 - **Añadir Owners:** Permite a los owners de servidores añadir otros owners/moderadores a su servidor.
 - **Listar Servidores:** Lista todos los servidores en los que está el bot, obtenidos de la base de datos SQLite.
 - **Listar Acciones de Moderadores:** Lista todas las acciones realizadas por un moderador en un servidor específico.
 - **Cambiar Color de Roles:** Cambia el color de un rol cada segundo durante dos minutos.
+- **Mutear Usuarios:** Permite a los owners de servidores mutear usuarios por un periodo de tiempo específico.
+- **Desmutear Usuarios:** Permite a los owners de servidores desmutear usuarios.
 - **Verificación de Sanciones:** Verifica periódicamente las sanciones y las elimina cuando llega la fecha límite.
 
 ## Requisitos
@@ -37,7 +40,7 @@ Este es un bot de Discord desarrollado en Python que incluye varias funcionalida
     pip install -r requirements.txt
     ```
 
-4. Crea un archivo [.env](http://_vscodecontentref_/0) en el directorio raíz del proyecto y añade tu token de Discord:
+4. Crea un archivo [`.env`](.env ) en el directorio raíz del proyecto y añade tu token de Discord:
     ```env
     DISCORD_TOKEN=tu_token_de_discord
     DISCORD_GUILD=tu_id_de_guild
@@ -50,6 +53,7 @@ Este es un bot de Discord desarrollado en Python que incluye varias funcionalida
 
 ## Uso
 
-Para iniciar el bot, simplemente ejecuta el archivo [main.py](http://_vscodecontentref_/1):
+Para iniciar el bot, simplemente ejecuta el archivo [`main.py`](main.py ):
 ```sh
 python main.py
+
