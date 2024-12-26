@@ -12,6 +12,13 @@ Este es un bot de Discord desarrollado en Python que incluye varias funcionalida
 - **Cambiar Color de Roles:** Cambia el color de un rol cada segundo durante dos minutos.
 - **Mutear Usuarios:** Permite a los owners de servidores mutear usuarios por un periodo de tiempo específico.
 - **Desmutear Usuarios:** Permite a los owners de servidores desmutear usuarios.
+- **Advertir Usuarios:** Permite a los moderadores advertir a los usuarios por comportamientos inapropiados.
+- **Desadvertir Usuarios:** Permite a los moderadores desadvertir a los usuarios.
+- **Expulsar Usuarios:** Permite a los moderadores expulsar a los usuarios del servidor.
+- **Limpiar Mensajes:** Permite a los moderadores eliminar un número específico de mensajes en un canal.
+- **Establecer Canal de Logs:** Permite a los administradores establecer un canal donde se registren todas las acciones de moderación.
+- **Ver Información del Usuario:** Permite a los usuarios ver información detallada sobre un miembro del servidor.
+- **Ver Información del Servidor:** Permite a los usuarios ver información detallada sobre el servidor.
 - **Verificación de Sanciones:** Verifica periódicamente las sanciones y las elimina cuando llega la fecha límite.
 
 ## Requisitos
