@@ -21,7 +21,7 @@ async def ListarServerEnDb(interaction: discord.Interaction, cursor: sqlite3.Cur
         
         # Añadimos los servidores al embed
         for server in servidores:
-            embed.add_field(name="Servidor", value=server[0], inline=False)
+            embed.add_field(name="Servidor", value=f'{server[0]} ', inline=False)
         
         await interaction.response.send_message(embed=embed)
     except Exception as e:

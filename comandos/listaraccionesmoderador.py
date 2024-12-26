@@ -15,7 +15,7 @@ async def ListarAccionesModerador(interaction: discord.Interaction, cursor: sqli
             return
 
         # Obtenemos todas las acciones realizadas por el moderador
-        cursor.execute("SELECT * FROM moderatoractions WHERE idModerador = ?", (miembro.id,))
+        cursor.execute("SELECT * FROM moderatoractions WHERE idModerador = ? AND id", (miembro.id,))
         rows = cursor.fetchall()
         if len(rows) == 0:
             embed = discord.Embed(title="Acciones del moderador", description=f'{miembro.name} No ha realizado ninguna acción como moderador', color=discord.Color.red())

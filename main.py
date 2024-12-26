@@ -7,11 +7,12 @@ from dotenv import load_dotenv
 from typing import Final
 import asyncio
 from datetime import datetime
-from comandos.banear import  banear_command
+from comandos.banear import  banear_command, desBanear_command
 from comandos.arcoiris import  Arcoris
 from comandos.listaserver import ListarServerEnDb
 from comandos.añadirOwner import AñadirOwner
 from comandos.listaraccionesmoderador import ListarAccionesModerador
+from comandos.mutear import MutearMiembro, DesmutearMiembro
 import sqlite3
 
 load_dotenv()
@@ -117,8 +118,8 @@ def obtener_servidores():
 
 
 GUILD_ID = discord.Object(id=750433534581276692)
-#750433534581276692
-#1006662013071675502
+#750433534581276692 HISPANIC SERVER
+#1006662013071675502 SERVIDOR DE PRUEBA
 
 
 @client.tree.command(name='decir', description='Dice algo que tu le digas', guild=GUILD_ID)
@@ -151,6 +152,22 @@ async def añadirOwner(interaction: discord.Interaction, member: discord.Member)
 @client.tree.command(name='listaracciones', description='Lista las acciones realizadas por un moderador', guild=GUILD_ID)
 async def listaracciones(interaction: discord.Interaction, miembro: discord.Member):
     await ListarAccionesModerador(interaction, cursor, miembro)
+
+@client.tree.command(name='desbanear', description='Desbanea a un usuario', guild=GUILD_ID)
+async def desbanear(interaction: discord.Interaction, id_user: str, reason: str):
+    try:
+        user = await client.fetch_user(int(id_user))
+        await desBanear_command(interaction, user, reason, cursor, conn)
+    except ValueError:
+        await interaction.response.send_message("ID de usuario inválido", ephemeral=True)
+
+@client.tree.command(name='mutear', description='Mutea a un usuario', guild=GUILD_ID)
+async def mutear(interaction: discord.Interaction, member: discord.Member, reason: str, tiempo: str):
+    await MutearMiembro(interaction, cursor, reason, member, tiempo, conn)
+
+@client.tree.command(name='desmutear', description='Desmutea a un usuario', guild=GUILD_ID)
+async def desmutear(interaction: discord.Interaction, member: discord.Member, reason: str):
+    await DesmutearMiembro(interaction, cursor, member, reason, conn)
 
 
     
