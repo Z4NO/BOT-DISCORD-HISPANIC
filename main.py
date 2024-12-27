@@ -14,6 +14,8 @@ from comandos.añadirOwner import AñadirOwner
 from comandos.listaraccionesmoderador import ListarAccionesModerador
 from comandos.mutear import MutearMiembro, DesmutearMiembro
 from comandos.warn  import WarnMiembro, DesWarnMiembro
+from comandos.PonerEnCuarentena import PonerEnCuarentena
+from comandos.SETUP_LOGS.setuplogs import SetpView, SetupLogsChannels, SetupQuarentineRole
 import sqlite3
 
 load_dotenv()
@@ -184,6 +186,15 @@ async def warn(interaction: discord.Interaction, member: discord.Member, reason:
 @client.tree.command(name='deswarn', description='Desavisa a un usuario', guild=GUILD_ID)
 async def deswarn(interaction: discord.Interaction, member: discord.Member, reason: str):
     await DesWarnMiembro(interaction, cursor, member, reason, conn)
+
+@client.tree.command(name='setuplogs', description='Configura los logs del servidor', guild=GUILD_ID)
+async def setuplogs(interaction: discord.Interaction):
+    view = SetpView(interaction.guild, conn, cursor)
+    await interaction.response.send_message("Selecciona el canal de logs", view=view)
+
+@client.tree.command(name='ponercuarentena', description='Pone a un usuario en cuarentena', guild=GUILD_ID)
+async def ponercuarentena(interaction: discord.Interaction, member: discord.Member, reason: str):
+    await PonerEnCuarentena(interaction, cursor, member, reason, conn)
 
 
     
