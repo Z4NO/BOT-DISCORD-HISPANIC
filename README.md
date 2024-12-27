@@ -16,9 +16,10 @@ Este es un bot de Discord desarrollado en Python que incluye varias funcionalida
 - **Desadvertir Usuarios:** Permite a los moderadores desadvertir a los usuarios.
 - **Expulsar Usuarios:** Permite a los moderadores expulsar a los usuarios del servidor.
 - **Limpiar Mensajes:** Permite a los moderadores eliminar un número específico de mensajes en un canal.
-- **Establecer Canal de Logs:** Permite a los administradores establecer un canal donde se registren todas las acciones de moderación.
+- **Establecer Canal de Logs y rol de cuarentena:** Permite a los administradores establecer un canal donde se registren todas las acciones de moderación además de añadir un rol de cuarentena.
 - **Ver Información del Usuario:** Permite a los usuarios ver información detallada sobre un miembro del servidor.
 - **Ver Información del Servidor:** Permite a los usuarios ver información detallada sobre el servidor.
+- **Poner en Cuarentena:** Permite a los owners de servidores poner a un usuario en cuarentena, asignándole un rol especial sin permisos.
 - **Verificación de Sanciones:** Verifica periódicamente las sanciones y las elimina cuando llega la fecha límite.
 
 ## Requisitos
@@ -63,4 +64,3 @@ Este es un bot de Discord desarrollado en Python que incluye varias funcionalida
 Para iniciar el bot, simplemente ejecuta el archivo [`main.py`](main.py ):
 ```sh
 python main.py
-
