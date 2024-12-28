@@ -14,8 +14,11 @@ from comandos.añadirOwner import AñadirOwner
 from comandos.listaraccionesmoderador import ListarAccionesModerador
 from comandos.mutear import MutearMiembro, DesmutearMiembro
 from comandos.warn  import WarnMiembro, DesWarnMiembro
-from comandos.PonerEnCuarentena import PonerEnCuarentena
-from comandos.SETUP_LOGS.setuplogs import SetpView, SetupLogsChannels, SetupQuarentineRole
+from comandos.PonerEnCuarentena import PonerEnCuarentena, SacarDeCuarentena
+from comandos.SETUP_LOGS.setuplogs import SetupView, SetupLogsChannels, SetupQuarentineRole
+from comandos.SETUP_LOGS.verconfg import VerConfig
+from comandos.help import Help
+from comandos.md import send_dm
 import sqlite3
 
 load_dotenv()
@@ -189,16 +192,33 @@ async def deswarn(interaction: discord.Interaction, member: discord.Member, reas
 
 @client.tree.command(name='setuplogs', description='Configura los logs del servidor', guild=GUILD_ID)
 async def setuplogs(interaction: discord.Interaction):
-    view = SetpView(interaction.guild, conn, cursor)
-    await interaction.response.send_message("Selecciona el canal de logs", view=view)
+    view = SetupView(interaction.guild, conn, cursor)
+    await interaction.response.send_message("Procesando...", ephemeral=True)
+    try:
+        await interaction.edit_original_response(content="Selecciona un canal de texto para los logs", view=view)
+    except Exception as e:
+        print(f"Error en setuplogs: {e}")
 
 @client.tree.command(name='ponercuarentena', description='Pone a un usuario en cuarentena', guild=GUILD_ID)
 async def ponercuarentena(interaction: discord.Interaction, member: discord.Member, reason: str):
     await PonerEnCuarentena(interaction, cursor, member, reason, conn)
 
+@client.tree.command(name='verconfig', description='Muestra la configuración del servidor', guild=GUILD_ID)
+async def verconfig(interaction: discord.Interaction):
+    await VerConfig(interaction, cursor)
 
-    
-    
+@client.tree.command(name='sacarcuarentena', description='Saca a un usuario de cuarentena', guild=GUILD_ID)
+async def sacarcuarentena(interaction: discord.Interaction, member: discord.Member, reason: str):
+    await SacarDeCuarentena(interaction, cursor, member, reason, conn)
+
+@client.tree.command(name='help', description='Muestra los comandos disponibles', guild=GUILD_ID)
+async def help(interaction: discord.Interaction):
+    await Help(interaction)
+
+@client.tree.command(name='enviar_md', description='Envía un mensaje privado a un usuario', guild=GUILD_ID)
+async def senddm(interaction: discord.Interaction, member: discord.Member, mensaje: str):
+    await send_dm(interaction, member, mensaje, cursor, conn)
+
 
 async def main():
     await client.start(TOKEN)

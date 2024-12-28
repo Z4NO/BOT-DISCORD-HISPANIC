@@ -3,18 +3,20 @@ from discord.ext import commands
 import sqlite3
 from datetime import datetime, timedelta
 
+from comandos.SETUP_LOGS.logcontrol import logcontrol
+
 async def MutearMiembro(interaction: discord.Interaction, cursor: sqlite3.Cursor, reason: str, member: discord.Member, tiempo: str, conn: sqlite3.Connection):
     try:
         # Comprobamos si el usuario es owner y si está en la base de datos y si está en el servidor correcto
         cursor.execute("SELECT * FROM owners WHERE idDiscord = ? AND SERVER_idSERVER = ?", (interaction.user.id, interaction.guild.id))
         row = cursor.fetchone()
         if row is None or interaction.user.id != interaction.guild.owner_id:
-            embed = discord.Embed(title="Permiso denegado", description=f'No tienes permisos para usar este comando {interaction.user.mention}', color=discord.Color.red())
+            embed = discord.Embed(title="🚫 **Permiso denegado**", description=f'No tienes permisos para usar este comando {interaction.user.mention}', color=discord.Color.red())
             await interaction.response.send_message(embed=embed)
             return
         
         if member is None or reason is None or tiempo is None:
-            embed = discord.Embed(title="Error", description=f'Por favor, completa todos los campos', color=discord.Color.red())
+            embed = discord.Embed(title="⚠️ **Error**", description=f'Por favor, completa todos los campos', color=discord.Color.red())
             await interaction.response.send_message(embed=embed)
             return
 
@@ -34,19 +36,23 @@ async def MutearMiembro(interaction: discord.Interaction, cursor: sqlite3.Cursor
                 raise ValueError("Unidad de tiempo no válida")
                 
         except ValueError:
-            embed = discord.Embed(title="Error", description='Formato de tiempo incorrecto. Usa: número seguido de d (días), h (horas) o m (minutos). Ejemplo: 1d, 2h, 30m', color=discord.Color.red())
+            embed = discord.Embed(title="⚠️ **Error**", description='Formato de tiempo incorrecto. Usa: número seguido de d (días), h (horas) o m (minutos). Ejemplo: 1d, 2h, 30m', color=discord.Color.red())
             await interaction.response.send_message(embed=embed)
             return
 
         # Silenciar al usuario
-        if member.is_timed_out() == False:
+        if not member.is_timed_out():
             await member.timeout(tiempo_delta, reason=reason)
-            embed = discord.Embed(title="Usuario silenciado", description=f'{member.mention} ha sido silenciado por **{tiempo}** debido a: **{reason}** ', color=discord.Color.green())
+            embed = discord.Embed(title="🔇 **Usuario silenciado**", description=f'{member.mention} ha sido silenciado por **{tiempo}** debido a: **{reason}**', color=discord.Color.green())
             embed.set_image(url=member.avatar.url)
             await interaction.response.send_message(embed=embed)
         
+        try:
+            await logcontrol(interaction, member, reason, cursor, "Mute")
+        except Exception as e:
+            print(f"Error en logcontrol: {e}")
 
-         # Registrar en la base de datos
+        # Registrar en la base de datos
         cursor.execute("INSERT INTO moderatoractions (idModerador, actionType, afectedMember, idAfected, date, endDateAction, reason, Owners_idOwners, idSERVER) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                    (interaction.user.id, 'mute', member.name, member.id, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), None, reason, row[0], interaction.guild.id))
         conn.commit()
@@ -61,23 +67,26 @@ async def DesmutearMiembro(interaction: discord.Interaction, cursor: sqlite3.Cur
         cursor.execute("SELECT * FROM owners WHERE idDiscord = ? AND SERVER_idSERVER = ?", (interaction.user.id, interaction.guild.id))
         row = cursor.fetchone()
         if row is None or interaction.user.id != interaction.guild.owner_id:
-            embed = discord.Embed(title="Permiso denegado", description=f'No tienes permisos para usar este comando {interaction.user.mention}', color=discord.Color.red())
+            embed = discord.Embed(title="🚫 **Permiso denegado**", description=f'No tienes permisos para usar este comando {interaction.user.mention}', color=discord.Color.red())
             await interaction.response.send_message(embed=embed)
             return
         
         if member is None or reason is None:
-            embed = discord.Embed(title="Error", description=f'Por favor, completa todos los campos', color=discord.Color.red())
+            embed = discord.Embed(title="⚠️ **Error**", description=f'Por favor, completa todos los campos', color=discord.Color.red())
             await interaction.response.send_message(embed=embed)
             return
 
         # Desilenciar al usuario
         if member.is_timed_out():
             await member.edit(timed_out_until=None)
-            embed = discord.Embed(title="Usuario desilenciado", description=f'{member.mention} ha sido desilenciado por {reason}', color=discord.Color.green())
+            embed = discord.Embed(title="🔊 **Usuario desilenciado**", description=f'{member.mention} ha sido desilenciado por **{reason}**', color=discord.Color.green())
             embed.set_image(url=member.avatar.url)
             await interaction.response.send_message(embed=embed)
         
-        
+        try:
+            await logcontrol(interaction, member, reason, cursor, "Des Mute")
+        except Exception as e:
+            print(f"Error en logcontrol: {e}")
 
         # Registrar en la base de datos
         cursor.execute("INSERT INTO moderatoractions (idModerador, actionType, afectedMember, idAfected, date, endDateAction, reason, Owners_idOwners, idSERVER) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
