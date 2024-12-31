@@ -9,7 +9,7 @@ async def Arcoris(interaction: discord.Interaction, rol: discord.Role):
             try:
                 embed = discord.Embed(
                     title="🌈 **Cambio de color**",
-                    description=f'Cambiando el color del rol {rol.mention} durante 2 minutos',
+                    description=f'Cambiando el color del rol {rol.mention} durante 1 hora',
                     color=discord.Color.blue()
                 )
                 await interaction.response.send_message(embed=embed)

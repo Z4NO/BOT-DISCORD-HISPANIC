@@ -1,46 +1,29 @@
 import discord
-from discord import message
 from discord.ext import commands, tasks
-from discord import  app_commands
 import os
 from dotenv import load_dotenv
 from typing import Final
 import asyncio
 from datetime import datetime
-from comandos.banear import  banear_command, desBanear_command
-from comandos.arcoiris import  Arcoris
+from comandos.banear import banear_command, desBanear_command
+from comandos.arcoiris import Arcoris
 from comandos.listaserver import ListarServerEnDb
 from comandos.añadirOwner import AñadirOwner
 from comandos.listaraccionesmoderador import ListarAccionesModerador
 from comandos.mutear import MutearMiembro, DesmutearMiembro
-from comandos.warn  import WarnMiembro, DesWarnMiembro
+from comandos.warn import WarnMiembro, DesWarnMiembro
 from comandos.PonerEnCuarentena import PonerEnCuarentena, SacarDeCuarentena
 from comandos.SETUP_LOGS.setuplogs import SetupView, SetupLogsChannels, SetupQuarentineRole
 from comandos.SETUP_LOGS.verconfg import VerConfig
 from comandos.help import Help
 from comandos.md import send_dm
+from comandos.añadirsticker import AñadirSticker
 import sqlite3
 
 load_dotenv()
 TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
 
-"""
-📚 All the different types of Events:
-on_ready()
-on_message(message)
-on_message_edit(before, after)
-on_message_delete(message)
-on_member_join(member)
-on_member_remove(member)
-on_member_update(before, after)
-on_guild_join(guild)
-on_guild_remove(guild)
-on_reaction_add(reaction, user)
-on_reaction_remove(reaction, user)
-"""
-
 # Conectar a la base de datos SQLite existente
-
 try:
     conn = sqlite3.connect('data2.sqlite')
     cursor = conn.cursor()
@@ -56,12 +39,10 @@ if server_elegir == 1:
 elif server_elegir == 2:
     server = 1006662013071675502
 
-
-
-
 class Client(commands.Bot):
     async def on_ready(self):
         print('Logueado como: ', self.user)
+        await client.change_presence(activity=discord.Streaming(name="HISPANIC CLAN ON TOP", url="https://discord.gg/py6vtGNedJ"))
 
         try:
             guild = discord.Object(id=server)
@@ -71,47 +52,60 @@ class Client(commands.Bot):
             print(e)
 
         obtener_servidores()
+        self.chek_tickets.start()  # Iniciar la tarea de verificación de tickets
 
     async def on_message(self, message):
-       
-        if message.author == self.user: 
-            return 
+        if message.author == self.user:
+            return
+
+
+    @tasks.loop(seconds=3)
+    async def chek_tickets(self):
+        print("Verificando tickets...")  # Mensaje de depuración
+        categoria_de_tickets = obtner_categoria_tickets()
+        if categoria_de_tickets is None:
+            print("No se encontró la categoría de tickets")  # Mensaje de depuración
+            return
+        await comprobar_canal_ticket(categoria_de_tickets)
+
         
-        if '@everyone' in message.content:
-            await message.channel.send(f'{message.author.mention} ha mencionado a todos con @everyone')
-
-
-        if self.user in  message.mentions:
-            await message.channel.send(f'Hola {message.author.mention}! ¿En qué puedo ayudarte?')
-
-    async def on_reaction_add(self, reaction, user):
-        await reaction.message.channel.send(f'{user.mention} ha reaccionado a un mensaje con {reaction.emoji}')
-    
-    @tasks.loop(minutes=1)
-    async def check_sanciones(self):
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        cursor.execute("SELECT * FROM moderatoractions WHERE endDateAction <= ?", (now,))
-        sanciones = cursor.fetchall()
-        for sancion in sanciones:
-            guild = self.get_guild(sancion[1])
-            member = guild.get_member(sancion[4])
-            tipo = sancion[2]
-            if member:
-                #Aqui debemos de distinguir que tipo de sanción es para poder saber que tipo de acción realizar , si es un ban o un mute , etc
-                #tanbien debemos tener en cuenta que un usuario pueda haber  desbaneado o desmuteado al usuario de forma manual . por lo que debemos de comprobar si el usuario sigue baneado o muteado
-                if tipo == "ban" and member not in await guild.bans():
-                    await guild.unban(member)
-                elif tipo == "mute" and guild.get_member(sancion[4]).is_timed_out():
-                    await member.remove_roles(guild.get_role(sancion[5]))
                 
-                
-
 
 intents = discord.Intents.default()
 intents.message_content = True
 client = Client(command_prefix='a/', intents=intents)
 
-#VAMOS A CREAR UN METODO EL CUAL VA A RECOPILAR TODOS LOS SERVIDORES EN LOS QUE ESTE EL BOT Y LOS INTRODUCIRA EN LA BASE DE DATOS
+async def crear_embed_ticket_enviar(canal: discord.TextChannel):
+    embed = discord.Embed(
+                    title="Nuevo ticket",
+                    description="Se ha creado un nuevo ticket",
+                    color=discord.Color.green(),
+                    type="rich"
+                )
+    embed.set_footer(text="HISPANIC BOT")
+    try:
+        await canal.send(f"<@&764955070500438016>", embed=embed)
+        print(f"Mensaje enviado en el canal {canal.name}")  # Mensaje de depuración
+    except discord.Forbidden:
+        print(f"Error: No tengo permisos para enviar mensajes en el canal {canal.name}")
+    except Exception as e:
+        print(f"Error al enviar el mensaje en el canal {canal.name}: {e}")
+
+async def comprobar_canal_ticket(categoria: discord.CategoryChannel):
+    for channel in categoria.text_channels:
+            print(f"Verificando canal: {channel.name}")  # Mensaje de depuración
+            if not channel.name.startswith("ticket📈-"):
+                new_name = "ticket📈-" + channel.name.split("ticket-")[1]
+                print(f"Cambiando nombre del canal {channel.name} a {new_name}")  # Mensaje de depuración
+                try:
+                    await channel.edit(name=new_name)
+                    print(f"Nombre del canal cambiado a {new_name}")  # Mensaje de depuración
+                except discord.Forbidden:
+                    print(f"Error: No tengo permisos para editar el canal {channel.name}")
+                except Exception as e:
+                    print(f"Error al cambiar el nombre del canal {channel.name}: {e}")
+                await crear_embed_ticket_enviar(channel)
+
 def obtener_servidores():
     try:
         for guild in client.guilds:
@@ -126,28 +120,35 @@ def obtener_servidores():
     except Exception as e:
         print("Error al obtener los servidores: ", e)
 
+def obtener_categorias(guild: discord.Guild):
+    for categoria in guild.categories:
+        if categoria.id == 1314262440510226553:
+            return categoria
 
-
-
+def obtner_categoria_tickets():
+    try:
+        categoria_tickets = None
+        for guild in client.guilds:
+            if guild.id == 750433534581276692:
+                categoria_tickets = obtener_categorias(guild)
+                break
+        return categoria_tickets
+    except Exception as e:
+        print(f"Error al obtener la categoria de tickets: {e}")
+        return None
 
 GUILD_ID = discord.Object(id=server)
-#750433534581276692 HISPANIC SERVER
-#1006662013071675502 SERVIDOR DE PRUEBA
-
 
 @client.tree.command(name='decir', description='Dice algo que tu le digas', guild=GUILD_ID)
-#Funcion para banear a un usuario
 async def DecirHola(interaction: discord.Interaction, contenido: str):
     await interaction.response.send_message(f'{contenido}')
 
-
 @client.tree.command(name='decirr', description='Dice algo que tu le digas', guild=GUILD_ID)
-#Funcion para banear a un usuario
 async def DecirHola(interaction: discord.Interaction, contenido: str):
     await interaction.response.send_message(f'{contenido}')
 
 @client.tree.command(name='banear', description='Banea a un usuario', guild=GUILD_ID)
-async def banear(interaction: discord.Interaction , member: discord.Member, reason: str, fechafinal: str):
+async def banear(interaction: discord.Interaction, member: discord.Member, reason: str, fechafinal: str):
     await banear_command(interaction, member, reason, cursor, conn, fechafinal)
 
 @client.tree.command(name='arcoiris', description='Cambia el color de un rol durante 2 minutos', guild=GUILD_ID)
@@ -156,7 +157,7 @@ async def arcoiris(interaction: discord.Interaction, rol: discord.Role):
 
 @client.tree.command(name='listar', description='Lista los servidores en los que está el bot', guild=GUILD_ID)
 async def listar(interaction: discord.Interaction):
-    await ListarServerEnDb(interaction, cursor)     
+    await ListarServerEnDb(interaction, cursor)
 
 @client.tree.command(name='añadirowner', description='Añade un owner a un servidor', guild=GUILD_ID)
 async def añadirOwner(interaction: discord.Interaction, member: discord.Member):
@@ -219,6 +220,9 @@ async def help(interaction: discord.Interaction):
 async def senddm(interaction: discord.Interaction, member: discord.Member, mensaje: str):
     await send_dm(interaction, member, mensaje, cursor, conn)
 
+@client.tree.command(name='añadirsticker', description='Añade un sticker al servidor', guild=GUILD_ID)
+async def añadirsticker(interaction: discord.Interaction, nombre_sticker: str, descripcion_sticker: str, archivo: discord.Attachment):
+    await AñadirSticker(interaction, nombre_sticker, descripcion_sticker, archivo)
 
 async def main():
     await client.start(TOKEN)

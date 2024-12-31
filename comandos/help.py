@@ -23,7 +23,8 @@ async def Help(interaction: discord.Interaction):
         ("📋 **/listaracciones**", "Lista las acciones de un moderador"),
         ("⚙️ **/setuplogs**", "Configura los logs del servidor"),
         ("🔍 **/verconfig**", "Muestra la configuración del servidor"),
-        ("📜 **/listar**", "Lista los servidores en los que está el bot")
+        ("📜 **/listar**", "Lista los servidores en los que está el bot"),
+        ("📝 **/añadirsticker**", "Añade un sticker al servidor"),
     ]
     
     for name, value in commands_list:
