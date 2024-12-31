@@ -21,6 +21,7 @@ Este es un bot de Discord desarrollado en Python que incluye varias funcionalida
 - **Ver Información del Servidor:** Permite a los usuarios ver información detallada sobre el servidor.
 - **Poner en Cuarentena:** Permite a los owners de servidores poner a un usuario en cuarentena, asignándole un rol especial sin permisos.
 - **Verificación de Sanciones:** Verifica periódicamente las sanciones y las elimina cuando llega la fecha límite.
+- **Verificación de Creación de tickets:** Verifica periódicamente si algún ticket es creado y meciona a los roles correspondiente dentro del propio ticket.
 
 ## Requisitos
 
