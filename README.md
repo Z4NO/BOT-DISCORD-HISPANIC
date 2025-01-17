@@ -34,7 +34,7 @@ Este es un bot de Discord desarrollado en Python que incluye varias funcionalida
 
 1. Clona este repositorio:
     ```sh
-    [git clone https://github.com/tu_usuario/bot-hispanic-python.git](https://github.com/Z4NO/BOT-DISCORD-HISPANIC)
+    git clone https://github.com/tu_usuario/bot-hispanic-python.git
     cd bot-hispanic-python
     ```
 
