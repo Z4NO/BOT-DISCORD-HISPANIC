@@ -10,7 +10,7 @@ async def MutearMiembro(interaction: discord.Interaction, cursor: sqlite3.Cursor
         # Comprobamos si el usuario es owner y si está en la base de datos y si está en el servidor correcto
         cursor.execute("SELECT * FROM owners WHERE idDiscord = ? AND SERVER_idSERVER = ?", (interaction.user.id, interaction.guild.id))
         row = cursor.fetchone()
-        if row is None or interaction.user.id != interaction.guild.owner_id:
+        if row is None or interaction.user.id != row[2]:
             embed = discord.Embed(title="🚫 **Permiso denegado**", description=f'No tienes permisos para usar este comando {interaction.user.mention}', color=discord.Color.red())
             await interaction.response.send_message(embed=embed)
             return
@@ -66,7 +66,7 @@ async def DesmutearMiembro(interaction: discord.Interaction, cursor: sqlite3.Cur
         # Comprobamos si el usuario es owner y si está en la base de datos y si está en el servidor correcto
         cursor.execute("SELECT * FROM owners WHERE idDiscord = ? AND SERVER_idSERVER = ?", (interaction.user.id, interaction.guild.id))
         row = cursor.fetchone()
-        if row is None or interaction.user.id != interaction.guild.owner_id:
+        if row is None or interaction.user.id != row[2]:
             embed = discord.Embed(title="🚫 **Permiso denegado**", description=f'No tienes permisos para usar este comando {interaction.user.mention}', color=discord.Color.red())
             await interaction.response.send_message(embed=embed)
             return

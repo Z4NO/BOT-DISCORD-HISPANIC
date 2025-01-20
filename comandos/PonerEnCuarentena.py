@@ -12,7 +12,7 @@ async def PonerEnCuarentena(interaction: discord.Interaction, cursor: sqlite3.Cu
         # Comprobamos si el usuario es owner y si está en la base de datos
         cursor.execute("SELECT * FROM owners WHERE idDiscord = ? AND SERVER_idSERVER = ?", (interaction.user.id, interaction.guild.id))
         row = cursor.fetchone()
-        if row is None or interaction.user.id != interaction.guild.owner_id:
+        if row is None or interaction.user.id != row[2]:
             embed = discord.Embed(
                 title="🚫 **Permiso denegado**",
                 description=f'No tienes permisos para usar este comando {interaction.user.mention}',
@@ -76,7 +76,7 @@ async def SacarDeCuarentena(interaction: discord.Interaction, cursor: sqlite3.Cu
         # Comprobamos si el usuario es owner y si está en la base de datos
         cursor.execute("SELECT * FROM owners WHERE idDiscord = ? AND SERVER_idSERVER = ?", (interaction.user.id, interaction.guild.id))
         row = cursor.fetchone()
-        if row is None or interaction.user.id != interaction.guild.owner_id:
+        if row is None or interaction.user.id != row[2]:
             embed = discord.Embed(
                 title="🚫 **Permiso denegado**",
                 description=f'No tienes permisos para usar este comando {interaction.user.mention}',

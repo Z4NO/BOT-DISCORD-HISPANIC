@@ -8,20 +8,28 @@ from datetime import datetime
 from comandos.banear import banear_command, desBanear_command
 from comandos.arcoiris import Arcoris
 from comandos.listaserver import ListarServerEnDb
-from comandos.añadirOwner import AñadirOwner
+from comandos.añadirOwner import AñadirOwner, QuitarOwner
 from comandos.listaraccionesmoderador import ListarAccionesModerador
 from comandos.mutear import MutearMiembro, DesmutearMiembro
 from comandos.warn import WarnMiembro, DesWarnMiembro
 from comandos.PonerEnCuarentena import PonerEnCuarentena, SacarDeCuarentena
 from comandos.SETUP_LOGS.setuplogs import SetupView, SetupLogsChannels, SetupQuarentineRole
 from comandos.SETUP_LOGS.verconfg import VerConfig
+from comandos.SETUP_LOGS.logcontrol import logcontrol
 from comandos.help import Help
 from comandos.md import send_dm
 from comandos.añadirsticker import AñadirSticker
+from comandos.enivarMDaROl import enviarMDaRol
+from comandos.quienes import quienes
+from comandos.BuscarJuego import buscar_juego
+from comandos.IAmodelo import Pregunta_a_ia, generar_imagen
+from comandos.listarOwner import listarOwner
 import sqlite3
 
 load_dotenv()
 TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
+RAWG_API_KEY: Final[str] = os.getenv("RAWG_API_KEY")
+HUGGINGFACE_TOKEN: Final[str] = os.getenv("HUGGINGFACE_TOKEN")
 
 # Conectar a la base de datos SQLite existente
 try:
@@ -61,19 +69,47 @@ class Client(commands.Bot):
 
     @tasks.loop(seconds=3)
     async def chek_tickets(self):
-        print("Verificando tickets...")  # Mensaje de depuración
         categoria_de_tickets = obtner_categoria_tickets()
         if categoria_de_tickets is None:
             print("No se encontró la categoría de tickets")  # Mensaje de depuración
             return
         await comprobar_canal_ticket(categoria_de_tickets)
+    
+    @tasks.loop(minutes=1)
+    async def check_sanciones(self):
+        await obtener_sanciones_no_terminadas()
 
         
                 
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 client = Client(command_prefix='a/', intents=intents)
+
+
+async def obtener_sanciones_no_terminadas():
+    #En esta función obtendremos todas las sanciones que no han terminado como los bans, cuarentena , etc para comprobar si han terminado o no, si han terminado desbanearemos a los usuaarios y les quitaremos el rol de cuarentena
+    cursor.execute("SELECT actionType, endDateAction, idAfected FORM moderatoractions WHERE endDateAction < ?", (datetime.now(),))
+    rows = cursor.fetchall()
+    guild = client.fetch_guild(server)
+    for row in rows:
+        if row[0] == "ban":
+            try:
+                await guild.unban(discord.Object(id=row[2]), reason = f"Sanción terminada {row[0]}")
+                print(f"Usuario {row[2]} desbaneado")
+            except Exception as e:
+                print(f"Error al desbanear al usuario {row[2]}: {e}")
+        elif row[0] == "cuarentena":
+            try:
+                member = await guild.fetch_member(row[2])
+                role = discord.utils.get(guild.roles, name="Cuarentena")
+                await member.remove_roles(role)
+                print(f"Usuario {row[2]} sacado de la cuarentena")
+            except Exception as e:
+                print(f"Error al sacar de la cuarentena al usuario {row[2]}: {e}")
+
+
 
 async def crear_embed_ticket_enviar(canal: discord.TextChannel):
     embed = discord.Embed(
@@ -94,7 +130,7 @@ async def crear_embed_ticket_enviar(canal: discord.TextChannel):
 async def comprobar_canal_ticket(categoria: discord.CategoryChannel):
     for channel in categoria.text_channels:
             print(f"Verificando canal: {channel.name}")  # Mensaje de depuración
-            if not channel.name.startswith("ticket📈-"):
+            if not channel.name.startswith("ticket📈-") and not channel.name.startswith("closed-"):
                 new_name = "ticket📈-" + channel.name.split("ticket-")[1]
                 print(f"Cambiando nombre del canal {channel.name} a {new_name}")  # Mensaje de depuración
                 try:
@@ -223,6 +259,36 @@ async def senddm(interaction: discord.Interaction, member: discord.Member, mensa
 @client.tree.command(name='añadirsticker', description='Añade un sticker al servidor', guild=GUILD_ID)
 async def añadirsticker(interaction: discord.Interaction, nombre_sticker: str, descripcion_sticker: str, archivo: discord.Attachment):
     await AñadirSticker(interaction, nombre_sticker, descripcion_sticker, archivo)
+
+@client.tree.command(name='enviar_md_rol', description='Envía un mensaje a todos los miembros con un rol', guild=GUILD_ID)
+async def enviar_md_rol(interaction: discord.Interaction, rol: discord.Role, mensaje: str, url_canal: str):
+    await enviarMDaRol(interaction, rol, mensaje,  cursor,  url_canal)
+
+@client.tree.command(name='quienes', description='Muestra información de un usuario', guild=GUILD_ID)
+async def mostrar_quienes(interaction: discord.Interaction, member: discord.Member):
+    await quienes(interaction, member)
+
+@client.tree.command(name='buscar_juego', description='Busca un juego en la base de datos de RAWG', guild=GUILD_ID)
+async def buscar_juego_command(interaction: discord.Interaction, juego: str):
+    await buscar_juego(interaction, juego, RAWG_API_KEY)
+
+@client.tree.command(name='ia', description='Pregunta a la IA  lo que quieras', guild=GUILD_ID)
+async def ia(interaction: discord.Interaction, pregunta: str):
+    await Pregunta_a_ia(interaction, pregunta, HUGGINGFACE_TOKEN)
+
+@client.tree.command(name='imagen', description='Genera una imagen con la IA', guild=GUILD_ID)
+async def imagen(interaction: discord.Interaction, prompt: str):
+    await generar_imagen(interaction, prompt, HUGGINGFACE_TOKEN)
+
+@client.tree.command(name='listarowners', description='Lista a los owners del servidor', guild=GUILD_ID)
+async def listarowners(interaction: discord.Interaction):
+    await listarOwner(interaction, cursor)
+
+@client.tree.command(name='quitar_owner', description='Quita a un owner del servidor', guild=GUILD_ID)
+async def quitar_owner(interaction: discord.Interaction, member: discord.Member):
+    await QuitarOwner(interaction, member, cursor, conn)
+
+
 
 async def main():
     await client.start(TOKEN)
