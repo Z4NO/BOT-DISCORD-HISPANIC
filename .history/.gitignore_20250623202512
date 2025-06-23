@@ -6,12 +6,6 @@ __pycache__/
 # C extensions
 *.so
 
-#SQL
-*.sqlite
-*.sql
-*.mwb
-*.bak
-
 # Distribution / packaging
 .Python
 build/
