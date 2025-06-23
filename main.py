@@ -3,27 +3,28 @@ from discord.ext import commands, tasks
 import os
 from dotenv import load_dotenv
 from typing import Final
+import json
 import asyncio
 from datetime import datetime
-from comandos.banear import banear_command, desBanear_command
+from comandos.MODERACIÓN.banear import banear_command, desBanear_command
 from comandos.arcoiris import Arcoris
-from comandos.listaserver import ListarServerEnDb
-from comandos.añadirOwner import AñadirOwner, QuitarOwner
-from comandos.listaraccionesmoderador import ListarAccionesModerador
-from comandos.mutear import MutearMiembro, DesmutearMiembro
-from comandos.warn import WarnMiembro, DesWarnMiembro
-from comandos.PonerEnCuarentena import PonerEnCuarentena, SacarDeCuarentena
+from comandos.MODERACIÓN.listaserver import ListarServerEnDb
+from comandos.MODERACIÓN.añadirOwner import AñadirOwner, QuitarOwner
+from comandos.MODERACIÓN.listaraccionesmoderador import ListarAccionesModerador
+from comandos.MODERACIÓN.mutear import MutearMiembro, DesmutearMiembro
+from comandos.warn import WarnMiembro, DesWarnMiembro, CheckWarnsMiembro, modal_warn
+from comandos.MODERACIÓN.PonerEnCuarentena import PonerEnCuarentena, SacarDeCuarentena
 from comandos.SETUP_LOGS.setuplogs import SetupView, SetupLogsChannels, SetupQuarentineRole
 from comandos.SETUP_LOGS.verconfg import VerConfig
-from comandos.SETUP_LOGS.logcontrol import logcontrol
 from comandos.help import Help
-from comandos.md import send_dm
-from comandos.añadirsticker import AñadirSticker
-from comandos.enivarMDaROl import enviarMDaRol
+from comandos.MODERACIÓN.md import send_dm
+from comandos.MODERACIÓN.añadirsticker import AñadirSticker
+from comandos.MODERACIÓN.enivarMDaROl import enviarMDaRol
 from comandos.quienes import quienes
 from comandos.BuscarJuego import buscar_juego
-from comandos.IAmodelo import Pregunta_a_ia, generar_imagen
-from comandos.listarOwner import listarOwner
+from comandos.MODERACIÓN.listarOwner import listarOwner
+from comandos.valorant_tracker import MirarTracker
+from comandos.sorteos import Sorteo
 import sqlite3
 
 load_dotenv()
@@ -31,6 +32,7 @@ TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
 RAWG_API_KEY: Final[str] = os.getenv("RAWG_API_KEY")
 HUGGINGFACE_TOKEN: Final[str] = os.getenv("HUGGINGFACE_TOKEN")
 
+    
 # Conectar a la base de datos SQLite existente
 try:
     conn = sqlite3.connect('data2.sqlite')
@@ -67,7 +69,7 @@ class Client(commands.Bot):
             return
 
 
-    @tasks.loop(seconds=3)
+    @tasks.loop(minutes=7)
     async def chek_tickets(self):
         categoria_de_tickets = obtner_categoria_tickets()
         if categoria_de_tickets is None:
@@ -75,7 +77,7 @@ class Client(commands.Bot):
             return
         await comprobar_canal_ticket(categoria_de_tickets)
     
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=7)
     async def check_sanciones(self):
         await obtener_sanciones_no_terminadas()
 
@@ -172,6 +174,11 @@ def obtner_categoria_tickets():
     except Exception as e:
         print(f"Error al obtener la categoria de tickets: {e}")
         return None
+    
+
+
+
+
 
 GUILD_ID = discord.Object(id=server)
 
@@ -220,8 +227,8 @@ async def desmutear(interaction: discord.Interaction, member: discord.Member, re
     await DesmutearMiembro(interaction, cursor, member, reason, conn)
 
 @client.tree.command(name='warn', description='Avisa a un usuario', guild=GUILD_ID)
-async def warn(interaction: discord.Interaction, member: discord.Member, reason: str):
-    await WarnMiembro(interaction, cursor, member, reason, conn)
+async def modal_warn_command(interaction: discord.Interaction, member: discord.Member):
+    await modal_warn(interaction, member,cursor, conn)
 
 @client.tree.command(name='deswarn', description='Desavisa a un usuario', guild=GUILD_ID)
 async def deswarn(interaction: discord.Interaction, member: discord.Member, reason: str):
@@ -272,14 +279,6 @@ async def mostrar_quienes(interaction: discord.Interaction, member: discord.Memb
 async def buscar_juego_command(interaction: discord.Interaction, juego: str):
     await buscar_juego(interaction, juego, RAWG_API_KEY)
 
-@client.tree.command(name='ia', description='Pregunta a la IA  lo que quieras', guild=GUILD_ID)
-async def ia(interaction: discord.Interaction, pregunta: str):
-    await Pregunta_a_ia(interaction, pregunta, HUGGINGFACE_TOKEN)
-
-@client.tree.command(name='imagen', description='Genera una imagen con la IA', guild=GUILD_ID)
-async def imagen(interaction: discord.Interaction, prompt: str):
-    await generar_imagen(interaction, prompt, HUGGINGFACE_TOKEN)
-
 @client.tree.command(name='listarowners', description='Lista a los owners del servidor', guild=GUILD_ID)
 async def listarowners(interaction: discord.Interaction):
     await listarOwner(interaction, cursor)
@@ -287,6 +286,16 @@ async def listarowners(interaction: discord.Interaction):
 @client.tree.command(name='quitar_owner', description='Quita a un owner del servidor', guild=GUILD_ID)
 async def quitar_owner(interaction: discord.Interaction, member: discord.Member):
     await QuitarOwner(interaction, member, cursor, conn)
+
+
+@client.tree.command(name='sorteo', description='Realiza un sorteo', guild=GUILD_ID)
+async def sorteo(interaction: discord.Interaction, canal: discord.TextChannel):
+    await Sorteo(interaction, canal)
+
+@client.tree.command(name='check_warns', description='Comprueba los warns de un usuario', guild=GUILD_ID)
+async def check_warns(interaction: discord.Interaction, member: discord.Member):
+    await CheckWarnsMiembro(interaction, cursor, member)
+
 
 
 

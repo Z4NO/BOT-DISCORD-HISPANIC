@@ -1,0 +1,15 @@
+{
+    "detoxify": {
+        "canales": ["850513747075530754"],  
+        "umbrales": {
+            "ignorar": ["sexual_explicit", "obscene"],
+            "actuar": {
+                "toxicity": 0.85,
+                "identity_attack": 0.9,
+                "insult": 0.8,
+                "threat": 0.8,
+                "severe_toxicity": 0.95
+            }
+        }
+    }
+}
